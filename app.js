@@ -1,7 +1,8 @@
 const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
-const Blog = require('./models/blog')
+const Blog = require('./models/blog');
+const { render } = require('ejs');
 
 // express app
 const app = express();
@@ -18,6 +19,7 @@ app.set('view engine', 'ejs');
 
 // middleware and static pages
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
 
 app.use(morgan('dev'));
 
@@ -39,6 +41,41 @@ app.get('/blogs', (req, res) => {
     })
     .catch((err) => {
       console.log(err)
+    })
+});
+
+app.post( '/blogs',(req,res) => {
+  const blog = new Blog(req.body);
+
+  blog.save()
+    .then((result) => {
+      res.redirect('/blogs')
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+});
+
+app.get('/blogs/:id', (req, res) => {
+  const id = req.params.id;
+  Blog.findById(id)
+    .then(result => {
+      res.render('details', { blog: result, title: 'Blog details'})
+    })
+    .catch(err => {
+      console.log(err)
+    })
+});
+
+app.delete('/blogs/:id', (req, res) => {
+  const id = req.params.id;
+
+  Blog.findByIdAndDelete(id)
+    .tnen(result => {
+      res.json({ redirect: '/blogs' })
+    })
+    .catch(err => {
+      console.log(err);
     })
 })
 
